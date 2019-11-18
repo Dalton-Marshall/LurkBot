@@ -1,2 +1,0 @@
-# CompuBot
-Senior Capstone Project
