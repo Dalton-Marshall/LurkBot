@@ -1,4 +1,4 @@
-# CompuBot
+# LurkBot
 Senior Capstone Project
 
-v0.0.1 Initial upload of project.
+v0.0.2 Working read/write operations, to and from Twitch.
