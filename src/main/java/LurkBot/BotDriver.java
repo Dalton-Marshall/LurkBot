@@ -31,7 +31,7 @@ public class BotDriver {
 	private static TwitchClient twitchClient;
 	private static OAuth2Credential credential;
 	private static final String CHANNEL = "";
-	private static final String OAUTH = "oauthtokencharactersabc";
+	private static final String OAUTH = "twitchoauthexampleabcdef";
 	
 	private static JTextArea chatroomReceivedMessagesTextArea;
 	
@@ -67,6 +67,11 @@ public class BotDriver {
 		twitchClient.getChat().getEventManager().onEvent(ChannelMessageEvent.class).subscribe(event -> {
 			//System.out.println(/* "[" + event.getChannel().getName() + "] " + */event.getUser().getName() + " > " + event.getMessage());
 			chatroomReceivedMessagesTextArea.append("\n" + event.getUser().getName() + " > " + event.getMessage());
+			
+			if(event.getMessage().startsWith("!test")) {
+				twitchClient.getChat().sendMessage(CHANNEL, "@" + event.getUser().getName() + " test command success!");
+			}
+			// TODO: implement command function call here
 		});
 	}
 	
@@ -84,7 +89,7 @@ public class BotDriver {
 		frmLurkbot = new JFrame();
 		frmLurkbot.setResizable(false);
 		frmLurkbot.setTitle("LurkBot");
-		frmLurkbot.setBounds(100, 100, 600, 650);
+		frmLurkbot.setBounds(100, 100, 300, 650);
 		frmLurkbot.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmLurkbot.getContentPane().setLayout(null);
 		
@@ -145,5 +150,4 @@ public class BotDriver {
 		btnSendMessage.setBounds(73, 549, 125, 30);
 		frmLurkbot.getContentPane().add(btnSendMessage);
 	}
-	
 }
