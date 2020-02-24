@@ -12,6 +12,7 @@ import java.util.HashMap;
 public class CommandList {
 	private Map<String, String> commands = null;
 	
+	private Bot bot;
 	private File commandsFile = null;
 	private Scanner reader = null;
 	private String[] commandsFileLine = null;
@@ -20,6 +21,15 @@ public class CommandList {
 	CommandList() {
 		commands = new HashMap<>();
 		
+		// Immutable commands
+		commands.put("addcommand", "Command added");
+		commands.put("deletecommand", "Command deleted.");
+		commands.put("updatecommand", "Command updated.");
+		//commands.put("uptime", bot.getChannelName() + " has been live for " + bot.getUptime());
+		commands.put("changetitle", "newStreamTitle");
+		commands.put("changegame", "newGame");
+		commands.put("raffle", "chosenviewer");
+			
 		commandsFile = new File("commands.txt");
 		
 		try {
@@ -38,10 +48,12 @@ public class CommandList {
 		}
 	}
 	
+	public void connectBot(Bot bot) {
+		this.bot = bot;
+	}
+	
 	public void addCommand(String commandString, String responseString) {
 		commands.put(commandString, responseString);
-		
-		
 	}
 	
 	public void deleteCommand(String commandString) {

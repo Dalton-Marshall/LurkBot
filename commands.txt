@@ -4,14 +4,19 @@ test14:14
 test13:13
 test12:12
 test11:11
-test22:22
 test10:10
-test21:21
-test20:20
 test1:1
 test19:19
 test18:18
 test17:17
+changegame:newGame
+addcommand:Command added
+updatecommand:Command updated.
+test22:22
+test21:21
+raffle:chosenviewer
+test20:20
+changetitle:newStreamTitle
 test4:4
 test5:5
 test2:2
@@ -20,3 +25,4 @@ test8:8
 test9:9
 test6:6
 test7:7
+deletecommand:Command deleted.

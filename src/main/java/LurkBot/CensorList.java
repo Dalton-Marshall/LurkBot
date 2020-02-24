@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Scanner;
 
 public class CensorList {
@@ -44,8 +45,15 @@ public class CensorList {
 		words.remove(word);
 	}
 	
+	public Object[] toStringArray() {
+		Object[] data = new String[words.size()];
+		
+		data = words.toArray();
+		
+		return data;
+	}
+	
 	public boolean saveToFile() {
-		String commandString,  responseString;
 		// TODO export commandList to commands.txt
 		try {
 			writer = new FileWriter(censoredWordsFile, false);
