@@ -1,5 +1,0 @@
-2020-04-05T17:21:19.688
-[Sun Apr 05 17:22:30 EDT 2020]twisted_metal1916:!test4
-[Sun Apr 05 17:22:37 EDT 2020]twisted_metal1916:!TEST4
-[Sun Apr 05 17:23:27 EDT 2020]twisted_metal1916:WORD4
-[Sun Apr 05 17:23:30 EDT 2020]twisted_metal1916:word4
