@@ -12,10 +12,7 @@ test17:17
 changegame:newGame
 addcommand:Command added
 updatecommand:Command updated.
-test22:22
-test21:21
 raffle:chosenviewer
-test20:20
 changetitle:newStreamTitle
 test4:4
 test5:5
@@ -26,3 +23,4 @@ test9:9
 test6:6
 test7:7
 deletecommand:Command deleted.
+hello:Hello!

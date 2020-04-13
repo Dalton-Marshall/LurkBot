@@ -45,6 +45,15 @@ public class CensorList {
 		words.remove(word);
 	}
 	
+	public boolean stringContainsCensoredWord(String inputStr) {
+	    //return Arrays.stream(items).parallel().anyMatch(inputStr::contains);
+	    return words.parallelStream().anyMatch(inputStr::contains);
+	}
+	
+	public int getSize() {
+		return words.size();
+	}
+	
 	public Object[] toStringArray() {
 		Object[] data = new String[words.size()];
 		
