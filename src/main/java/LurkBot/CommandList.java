@@ -10,26 +10,61 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class CommandList {
-	private Map<String, String> commands = null;
+	private Map<String, CommandAttributes> commands = null;
 	
 	private Bot bot;
-	private File commandsFile = null;
-	private Scanner reader = null;
-	private String[] commandsFileLine = null;
-	private FileWriter writer = null;
+	private File commandsFile;
+	private Scanner reader;
+	private String[] commandsFileLine;
+	private FileWriter writer;
 	
-	CommandList() {
+	private class CommandAttributes
+	{
+	    private String responseString;
+	    private int cooldown;
+	    private String userTypes;
+
+	    public CommandAttributes(String responseString, int cooldown, String userTypes)
+	    {
+	        this.responseString = responseString;
+	        this.cooldown = cooldown;
+	        this.userTypes = userTypes;
+	    }
+	    
+	    public String getResponseString()
+	    {
+	        return responseString;
+	    }
+	    
+	    public int getCooldown()
+	    {
+	        return cooldown;
+	    }
+	    
+	    public String getUserTypes()
+	    {
+	        return userTypes;
+	    }
+	}
+	
+	public CommandList() {
 		commands = new HashMap<>();
 		
 		// Immutable commands
-		commands.put("addcommand", "Command added");
-		commands.put("deletecommand", "Command deleted.");
-		commands.put("updatecommand", "Command updated.");
-		//commands.put("uptime", bot.getChannelName() + " has been live for " + bot.getUptime());
-		commands.put("changetitle", "newStreamTitle");
-		commands.put("changegame", "newGame");
-		commands.put("raffle", "chosenviewer");
-			
+		commands.put("addcommand", new CommandAttributes("Command added.", 1, "mod"));
+		commands.put("deletecommand", new CommandAttributes("Command deleted.", 1, "mod"));
+		commands.put("updatecommand", new CommandAttributes("Command updated.", 1, "mod"));
+		//commands.put("uptime", new CommandAttributes(bot.getChannelName() + " has been live for " + bot.getUptime(), 1, "mod"));
+		commands.put("changetitle", new CommandAttributes("newStreamTitle", 1, "mod"));
+		commands.put("changegame", new CommandAttributes("newGame", 1, "mod"));
+		
+//		commands.put("addcommand", new Object[] {"Command added", 1, "mod"});
+//		commands.put("deletecommand", new Object[] {"Command deleted.", 1, "mod"});
+//		commands.put("updatecommand", new Object[] {"Command updated.", 1, "mod"});
+//		commands.put("uptime", new Object[] {bot.getChannelName() + " has been live for " + bot.getUptime(), 1, "all"});
+//		commands.put("changetitle", new Object[] {"newStreamTitle", 1, "mod"});
+//		commands.put("changegame", new Object[] {"newGame", 1, "mod"});
+		
 		commandsFile = new File("commands.txt");
 		
 		try {
@@ -37,7 +72,7 @@ public class CommandList {
 			
 			while(reader.hasNextLine()) {
 				commandsFileLine = reader.nextLine().split(":");
-				commands.put(commandsFileLine[0], commandsFileLine[1]);
+				commands.put(commandsFileLine[0], new CommandAttributes(commandsFileLine[1], Integer.parseInt(commandsFileLine[2]), commandsFileLine[3]));
 			}
 			
 			reader.close();
@@ -52,8 +87,9 @@ public class CommandList {
 		this.bot = bot;
 	}
 	
-	public void addCommand(String commandString, String responseString) {
-		commands.put(commandString, responseString);
+	public void addCommand(String commandString, String responseString, int responseCooldown, String userTypes ) {
+		commands.put(commandString, new CommandAttributes(responseString, responseCooldown, userTypes));
+		//commands.put(commandString, new Object[] { responseString, responseCooldown, userTypes });
 	}
 	
 	public void deleteCommand(String commandString) {
@@ -62,9 +98,9 @@ public class CommandList {
 		}
 	}
 	
-	public void updateCommand(String commandString, String newResponseString) {
+	public void updateCommand(String commandString, String newResponseString, int newResponseCooldown, String newUserTypes) {
 		if(commands.containsKey(commandString)) {
-			commands.replace(commandString, newResponseString);
+			commands.replace(commandString, new CommandAttributes(newResponseString, newResponseCooldown, newUserTypes));
 		}
 	}
 	
@@ -73,12 +109,14 @@ public class CommandList {
 	}
 	
 	public String[][] to2DStringArray() {
-		String[][] data = new String[commands.size()][2];
+		String[][] data = new String[commands.size()][4];
 		
 		int i = 0;
-		for(Map.Entry<String, String> entry : commands.entrySet()) {
+		for(Map.Entry<String, CommandAttributes> entry : commands.entrySet()) {
 			data[i][0] = entry.getKey();
-			data[i][1] = entry.getValue();
+			data[i][1] = entry.getValue().getResponseString();
+			data[i][2] = Integer.toString(entry.getValue().getCooldown());
+			data[i][3] = entry.getValue().getUserTypes().toString();
 			i++;
 		}
 		
@@ -87,14 +125,19 @@ public class CommandList {
 	
 	public boolean saveToFile() {
 		String commandString,  responseString;
-		// TODO export commandList to commands.txt
+		String userTypes;
+		int cooldown;
+		
 		try {
 			writer = new FileWriter(commandsFile, false);
 			
-			for(Map.Entry<String, String> entry : commands.entrySet()) {
+			for(Map.Entry<String, CommandAttributes> entry : commands.entrySet()) {
 				commandString = entry.getKey();
-				responseString = entry.getValue();
-				writer.write(commandString + ":" + responseString + "\n");
+				responseString = entry.getValue().getResponseString();
+				cooldown = entry.getValue().getCooldown();
+				userTypes = entry.getValue().getUserTypes();
+				
+				writer.write(commandString + ":" + responseString + ":" + cooldown + ":" + userTypes + "\n");
 			}
 			
 			writer.close();
@@ -113,7 +156,7 @@ public class CommandList {
 		String response = null;
 		
 		if(commands.containsKey(commandString)) {
-			response = commands.get(commandString); // value
+			response = commands.get(commandString).getResponseString();
 		}
 		else {
 			response = "invalid command";

@@ -1,26 +1,26 @@
-test16:16
-test15:15
-test14:14
-test13:13
-test12:12
-test11:11
-test10:10
-test1:1
-test19:19
-test18:18
-test17:17
-changegame:newGame
-addcommand:Command added
-updatecommand:Command updated.
-raffle:chosenviewer
-changetitle:newStreamTitle
-test4:4
-test5:5
-test2:2
-test3:3
-test8:8
-test9:9
-test6:6
-test7:7
-deletecommand:Command deleted.
-hello:Hello!
+test16:16:1:all
+test15:15:1:all
+test14:14:1:all
+test13:13:1:all
+test12:12:1:all
+test11:11:1:all
+test10:10:1:all
+test1:1:1:all
+test19:19:1:all
+test18:18:1:all
+test17:17:1:all
+changegame:newGame:1:mod
+addcommand:Command added:1:mod
+updatecommand:Command updated.:1:mod
+raffle:chosenviewer:1:mod
+changetitle:newStreamTitle:1:mod
+test4:4:1:all
+test5:5:1:all
+test2:2:1:all
+test3:3:1:all
+test8:8:1:all
+test9:9:1:all
+test6:6:1:all
+test7:7:1:all
+deletecommand:Command deleted.:1:mod
+hello:Hello!:1:all

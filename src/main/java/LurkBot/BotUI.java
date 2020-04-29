@@ -1,10 +1,7 @@
 package LurkBot;
 
-import java.awt.Color;
 import java.awt.EventQueue;
-//import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
-//import java.util.Iterator;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -33,8 +30,6 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 import javax.swing.JList;
 import javax.swing.JPasswordField;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 
 public class BotUI {
 
@@ -42,6 +37,7 @@ public class BotUI {
 	
 	private CommandList commandList = new CommandList();
 	private CensorList censorList = new CensorList();
+	private TimedMessageList messageList = new TimedMessageList();
 	
 	private Bot bot;
 	
@@ -49,11 +45,12 @@ public class BotUI {
 	private static JTextArea whispersReceivedTextArea;
 	private static JTextArea directMessagesReceivedTextArea;
 	private static JTextArea modMessagesReceivedTextArea;
+	DefaultListModel<String> modListModel;
+	private JTextField textFieldSavedChannel;
+	private JPasswordField passwordFieldOauth;
 	private JTable commandsTable;
 	private JTable censorsTable;
 	private JTable censoredCensorsTable;
-	private JTextField textFieldSavedChannel;
-	private JPasswordField passwordFieldOauth;
 	
 	private class ComboItem
 	{
@@ -359,6 +356,10 @@ public class BotUI {
 		quickLinksPanel.add(btnUnbanButton);
 		
 		JButton btnHostChannelButton = new JButton("Host");
+		btnHostChannelButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
 		btnHostChannelButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -477,15 +478,16 @@ public class BotUI {
 		JLabel lblChannelMods = new JLabel("Mods");
 		lblChannelMods.setBounds(170, 12, 55, 16);
 		quickLinksPanel.add(lblChannelMods);
-		DefaultListModel<String> modListModel = new DefaultListModel<>();
-		modListModel.addElement("Moderator 1");
-		modListModel.addElement("Moderator 2");
-		modListModel.addElement("Moderator 3");
-		modListModel.addElement("Moderator 4");
+		modListModel = new DefaultListModel<>();
 		JList<String> listMods = new JList<>(modListModel);
 		listMods.setBounds(170, 33, 150, 150);
 		quickLinksPanel.add(listMods);
-		
+		/*
+		JCheckBox chckbxPreventLinksIn = new JCheckBox("Prevent links in chat");
+		chckbxPreventLinksIn.setSelected(true);
+		chckbxPreventLinksIn.setBounds(170, 218, 150, 24);
+		quickLinksPanel.add(chckbxPreventLinksIn);
+		*/
 		JPanel generalSettingPanel = new JPanel();
 		tabbedPane.addTab("General", null, generalSettingPanel, null);
 		generalSettingPanel.setLayout(null);
@@ -496,9 +498,8 @@ public class BotUI {
 		generalSettingPanel.add(lblSavedChannel);
 		
 		textFieldSavedChannel = new JTextField();
-		textFieldSavedChannel.setText("Eragon1495");
+		textFieldSavedChannel.setEditable(false);
 		textFieldSavedChannel.setBounds(12, 32, 141, 20);
-		//textFieldSavedChannel.setText(bot.getChannelName());
 		generalSettingPanel.add(textFieldSavedChannel);
 		textFieldSavedChannel.setColumns(10);
 		
@@ -507,9 +508,14 @@ public class BotUI {
 		generalSettingPanel.add(lblOauth);
 		
 		passwordFieldOauth = new JPasswordField();
+		passwordFieldOauth.setEditable(false);
 		passwordFieldOauth.setBounds(165, 32, 250, 20);
 		generalSettingPanel.add(passwordFieldOauth);
-		
+		/*
+		JButton btnSave = new JButton("Save");
+		btnSave.setBounds(427, 29, 98, 26);
+		generalSettingPanel.add(btnSave);
+		*/
 		JPanel commandsPanel = new JPanel();
 		tabbedPane.addTab("Commands", null, commandsPanel, null);
 		commandsPanel.setLayout(null);
@@ -527,15 +533,35 @@ public class BotUI {
 			public void mouseClicked(MouseEvent e) {
 				JTextField commandField = new JTextField(20);
 				JTextField responseField = new JTextField(20);
+				JTextField cooldownField = new JTextField(10);
+				JCheckBox modCheckBox = new JCheckBox("Moderators");
+				JCheckBox vipCheckBox = new JCheckBox("VIPs");
+				JCheckBox subCheckBox = new JCheckBox("Subscribers");
+				JCheckBox folCheckBox = new JCheckBox("Followers");
 				JPanel newCommandPanel = new JPanel();
 				newCommandPanel.add(new JLabel("Command:"));
 				newCommandPanel.add(commandField);
 				newCommandPanel.add(new JLabel("Response:"));
 				newCommandPanel.add(responseField);
+				newCommandPanel.add(new JLabel("Who can use this command:"));
+				newCommandPanel.add(modCheckBox);
+				newCommandPanel.add(vipCheckBox);
+				newCommandPanel.add(subCheckBox);
+				newCommandPanel.add(folCheckBox);
 				
 				int result = JOptionPane.showConfirmDialog(null,  newCommandPanel, "New Command", JOptionPane.OK_CANCEL_OPTION);
 				if(result == JOptionPane.OK_OPTION) {
-					commandList.addCommand(commandField.getText(), responseField.getText());
+					String allowedUsers = "";
+					if(modCheckBox.isSelected())
+						allowedUsers += "mod";
+					if(vipCheckBox.isSelected())
+						allowedUsers += "vip";
+					if(subCheckBox.isSelected())
+						allowedUsers += "sub";
+					if(folCheckBox.isSelected())
+						allowedUsers += "fol";
+					
+					commandList.addCommand(commandField.getText(), responseField.getText(), Integer.parseInt(cooldownField.getText()), allowedUsers);
 				}
 			}
 		});
@@ -566,25 +592,26 @@ public class BotUI {
 		tabbedPane.addTab("Censors", null, censorshipPanel, null);
 		censorshipPanel.setLayout(null);
 		
-		String[] censorsColumnNames = { "Word", "Null"};
+		//String[] censorsColumnNames = { "Word", "Null"};
 		
 		JScrollPane censorshipScrollPane = new JScrollPane();
 		censorshipScrollPane.setBounds(10, 40, 535, 455);
 		censorshipPanel.add(censorshipScrollPane);
 		
-		
 		//censorsTable = new JTable(censorList.toStringArray(), censorsColumnNames);
-		censorsTable = new JTable(60, 3);
-		censoredCensorsTable = new JTable(60, 3);
-		for(int i = 0; i < 50; i++) {
+		censorsTable = new JTable(60, 2);
+		censoredCensorsTable = new JTable(60, 2);
+		for(int i = 0; i < 25; i++) {
 			Object censorWord = censorList.toStringArray()[i];
 			censorsTable.setValueAt(censorWord, i, 0);
+			censorsTable.setValueAt("5 minutes", i, 1);
 			
 			Object censoredWord = censorWord.toString().charAt(0);
 			for(int j = 0; j < censorWord.toString().length(); j++) {
 				censoredWord += "*";
 			}
 			censoredCensorsTable.setValueAt(censoredWord, i, 0);
+			censoredCensorsTable.setValueAt("5 minutes", i, 1);
 		}
 		censorshipScrollPane.setViewportView(censoredCensorsTable);
 		censorsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -605,8 +632,24 @@ public class BotUI {
 		tglbtnCensorsToggleButton.setBounds(10, 12, 110, 26);
 		censorshipPanel.add(tglbtnCensorsToggleButton);
 		
+		JButton btnAddNewCommand_1 = new JButton("Create");
+		btnAddNewCommand_1.setBounds(10, 503, 100, 43);
+		censorshipPanel.add(btnAddNewCommand_1);
+		
+		JButton btnEditCommand_1 = new JButton("Edit");
+		btnEditCommand_1.setBounds(120, 503, 100, 43);
+		censorshipPanel.add(btnEditCommand_1);
+		
+		JButton btnDeleteCommand_1 = new JButton("Delete");
+		btnDeleteCommand_1.setBounds(230, 503, 100, 43);
+		censorshipPanel.add(btnDeleteCommand_1);
+		
+		JButton btnExportCensors = new JButton("Export Censors");
+		btnExportCensors.setBounds(371, 503, 150, 43);
+		censorshipPanel.add(btnExportCensors);
+		
 		JPanel messagesPanel = new JPanel();
-		tabbedPane.addTab("Messages", null, messagesPanel, null);
+		//tabbedPane.addTab("Messages", null, messagesPanel, null);
 	}
 	
 	public void connectBot(Bot bot) {
@@ -627,5 +670,19 @@ public class BotUI {
 	
 	public void chatroomModMessagesAppendMessage(String modMessage) {
 		modMessagesReceivedTextArea.append("\n" + modMessage);
+	}
+	
+	public void setChannelName(String channelName) {
+		textFieldSavedChannel.setText(channelName);
+	}
+	
+	public void setChannelModsList(String[] channelMods) {
+		for(String mod : channelMods) {
+			modListModel.addElement(mod);
+		}
+	}
+	
+	public void setChannelOauth(String channelOauth) {
+		passwordFieldOauth.setText(channelOauth);
 	}
 }

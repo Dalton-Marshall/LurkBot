@@ -11,10 +11,10 @@ import java.util.Scanner;
 public class CensorList {
 	private ArrayList<String> words;
 	
-	private File censoredWordsFile = null;
-	private Scanner reader = null;
-	private String censoredWordsLine = null;
-	private FileWriter writer = null;
+	private File censoredWordsFile;
+	private Scanner reader;
+	private String censoredWordsLine;
+	private FileWriter writer;
 	
 	public CensorList() {
 		words = new ArrayList<>();

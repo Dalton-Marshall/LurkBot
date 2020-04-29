@@ -2,17 +2,14 @@ package LurkBot;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.Arrays;
+import java.util.Scanner;
 import java.util.Calendar;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
 import com.github.twitch4j.TwitchClient;
@@ -30,10 +27,13 @@ public class Bot {
 	private TwitchClient whisperTwitchClient;
 	private OAuth2Credential botCredential;
 	private OAuth2Credential channelCredential;
-	private File settingsFile = new File("settings.txt");
+	private File settingsFile;
+	private Scanner reader;
+	private String[] settingsFileLine;
 	private String channelName;
-	private final String BOTOAUTH = "qmbevizwjp4vi8krqrfj5rp";
 	private String channelOauth;
+	private String[] channelMods;
+	private final String BOTOAUTH = "qmbevizwjp4vi8krqrfj5rp0jmesst";
 	private String chatLogString = LocalDateTime.now() + "\n";
 	private Date datetime = new Date();
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss") ;
@@ -41,33 +41,65 @@ public class Bot {
 	private Calendar streamStartTime;
 	
 	public Bot(BotUI botui, CommandList commands, CensorList censors) {
+		
 		this.botui = botui;
 		this.commands = commands;
 		this.censors = censors;
 		
-		channelName = "Eragon1495";
-		channelOauth = "zmeamu43apo4xal9v80drho05";
+		settingsFile = new File("settings.txt");
+		
+		try {
+			reader = new Scanner(settingsFile);
+			
+			while(reader.hasNextLine()) {
+				settingsFileLine = reader.nextLine().split(":");
+				if(settingsFileLine[1] != null) {
+					switch(settingsFileLine[0]) {
+					case "SavedChannel":
+						channelName = settingsFileLine[1];
+					case "ChannelOauth":
+						channelOauth = settingsFileLine[1];
+					case "ChannelMods":
+						channelMods = settingsFileLine[1].split(",");
+						break;
+					default:
+						// Log error
+					}
+				}
+			}
+			
+			this.botui.setChannelModsList(channelMods);
+			this.botui.setChannelName(channelName);
+			this.botui.setChannelOauth(channelOauth);
+			
+			reader.close();
+		} catch (FileNotFoundException e) {
+			// TODO log the error
+			// TODO display error to user
+			e.printStackTrace();
+		}
 		
 		botCredential = new OAuth2Credential("twitch", BOTOAUTH); // bot oauth
 		twitchClient = TwitchClientBuilder.builder()
             .withEnableHelix(true) // to talk to twitch API
             .withEnableTMI(true) // to get list of chatters
             .withChatAccount(botCredential) // to connect to chatroom
-            //.withEnablePubSub(true)
             .withEnableChat(true)
             .build();
 		
-		channelCredential = new OAuth2Credential("twitch", channelOauth);
+		channelCredential = new OAuth2Credential("twitch", channelOauth); // user oauth
 		whisperTwitchClient = TwitchClientBuilder.builder()
-				.withChatAccount(channelCredential)
-				.withEnablePubSub(true)
-				.build();
+	            .withEnableHelix(true) // to talk to twitch API
+	            .withChatAccount(channelCredential) // to connect to chatroom
+	            .withEnableChat(true)
+	            .build();
 		
 		twitchClient.getChat().joinChannel(channelName);
 		
 		botui.chatroomAllAppendMessage("= Entered chatroom =");
 		botui.chatroomWhispersAppendMessage("= Whispers to you =");
 		botui.chatroomDirectMessagesAppendMessage("= Direct messages to you =");
+		botui.chatroomModMessagesAppendMessage("= Mod messages =");
 		
 		// Used for !uptime command primarily
 		twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class).subscribe(event -> {
@@ -77,9 +109,9 @@ public class Bot {
 		});
 		
 		// Handles whispers, displays in appropriate chatroom tab
-		twitchClient.getChat().getEventManager().onEvent(PrivateMessageEvent.class).subscribe(event -> {
+		whisperTwitchClient.getChat().getEventManager().onEvent(PrivateMessageEvent.class).subscribe(event -> {
 			//System.out.println("[Whisper] " + event.getUser().getName() + ": " + event.getMessage());
-			botui.chatroomWhispersAppendMessage("[Whisper] " + event.getUser().getName() + " > " + event.getMessage());
+			botui.chatroomWhispersAppendMessage("[from] " + event.getUser().getName() + " > " + event.getMessage());
 		});
 		
 		// Read chat room of currently connected channel
@@ -100,7 +132,7 @@ public class Bot {
 				}
 			}
 			
-			if(event.getUser().getName() == "twisted_metal1916") {
+			if(event.getUser().getName() == "executeorder77") {
 				botui.chatroomModMessagesAppendMessage(event.getUser().getName() + " > " + event.getMessage());
 			}
 			
@@ -113,6 +145,7 @@ public class Bot {
 				botui.chatroomDirectMessagesAppendMessage(event.getUser().getName() + " > " + event.getMessage());
 			}
 			
+			// Link prevention
 			// TODO allow moderators
 			if(event.getMessage().contains("www.") || event.getMessage().contains(".com") || event.getMessage().contains(".net") || event.getMessage().contains(".org")) {
 				//event.timeout(event.getUser().getName(), Duration.ofHours(1), "Link used without permission.");
@@ -146,13 +179,27 @@ public class Bot {
 		return channelName;
 	}
 	
-//	timer5.schedule(new TimerTask() { 
-//	   @Override
-//	   public void run() {
-//		   //twitchClient.getChat().sendMessage(channelName, message);
-//		   //botui.chatroomAllAppendMessage("\nCheck out my youtube channel: youtube.com/channel");
-//	   }
-//	},  5000); //300000);
+	public void setChannel(String channelName) {
+		this.channelName = channelName;
+	}
+	
+	public String getChannelOauth() {
+		return channelOauth;
+	}
+	
+	public void setChannelOauth(String channelOauth) {
+		this.channelOauth = channelOauth;
+	}
+	
+	public String[] getChannelMods() {
+		return channelMods;
+	}
+	
+	public void setChannelMods(String[] channelMods) {
+		for(int i = 0; i < channelMods.length; i++) {
+			this.channelMods[i] = channelMods[i];
+		}
+	}
 	
 	public String getUptime() {
 		String uptimeString = "";
@@ -185,6 +232,11 @@ public class Bot {
 	}
 	
 	public void sendMessageToChatroom(String message) {
-		twitchClient.getChat().sendMessage(channelName, message);
+		if(message.contains("/mod ") || message.contains("/unmod ")) {
+			whisperTwitchClient.getChat().sendMessage(channelName, message);
+		}
+		else {
+			twitchClient.getChat().sendMessage(channelName, message);
+		}
 	}
 }
